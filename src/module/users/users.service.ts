@@ -1,0 +1,57 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UserDto } from 'src/dto/user.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class UsersService {
+    constructor(
+        private prisma: PrismaService,
+
+    ) { }
+
+    async completeProfile(
+        userId: number,
+        dto: UserDto,
+    ) {
+        const user = await this.prisma.users.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException('Usuario no válido');
+        }
+
+        const updatedUser = await this.prisma.users.update({
+            where: { id: userId },
+            data: {
+                first_name: dto.first_name,
+                last_name: dto.last_name,
+                age: dto.age,
+                gender: dto.gender,
+                course: dto.course,
+                phone: dto.phone,
+                location: dto.location,
+                updated_at: new Date(),
+            },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                age: true,
+                gender: true,
+                course: true,
+                phone: true,
+                location: true,
+            },
+        });
+
+        return {
+            message: 'Perfil completado correctamente',
+            user: updatedUser,
+        };
+    }
+
+
+}

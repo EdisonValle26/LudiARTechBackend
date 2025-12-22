@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_POSTGRES")
+}
+
+model badges {
+  id              Int           @id @default(autoincrement())
+  name            String        @db.VarChar(150)
+  description     String?       @db.VarChar(150)
+  icon            String?       @db.VarChar(255)
+  points_required Int?
+  created_at      DateTime?     @default(now()) @db.Timestamp(6)
+  user_badges     user_badges[]
+}
+
+model game_score_history {
+  id              Int       @id @default(autoincrement())
+  user_id         Int?
+  game_id         Int?
+  points          Int
+  correct_answers Int
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  games           games?    @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model games {
+  id                 Int                  @id @default(autoincrement())
+  section_id         Int?
+  name               String               @db.VarChar(150)
+  description        String?              @db.VarChar(150)
+  max_points         Int?                 @default(0)
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  game_score_history game_score_history[]
+  sections           sections?            @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model login_history {
+  id       Int       @id @default(autoincrement())
+  user_id  Int?
+  login_at DateTime? @default(now()) @db.Timestamp(6)
+  users    users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model password_reset {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  otp        String    @db.VarChar(255)
+  expires_at DateTime  @db.Timestamp(6)
+  used       Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model sections {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(150)
+  description String?   @db.VarChar(150)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  games       games[]
+}
+
+model tags {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(250)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  users       users[]
+}
+
+model user_badges {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  badge_id   Int?
+  awarded_at DateTime? @default(now()) @db.Timestamp(6)
+  badges     badges?   @relation(fields: [badge_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, badge_id])
+}
+
+model user_stats {
+  id              Int       @id @default(autoincrement())
+  user_id         Int?      @unique
+  lives           Int?      @default(5)
+  streak          Int?      @default(0)
+  correct_answers Int?      @default(0)
+  total_points    Int?      @default(0)
+  games_completed Int?      @default(0)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id                 Int                  @id @default(autoincrement())
+  username           String               @unique @db.VarChar(100)
+  email              String               @unique @db.VarChar(150)
+  password           String               @db.VarChar(255)
+  is_active          Boolean?             @default(true)
+  first_name         String?              @db.VarChar(100)
+  last_name          String?              @db.VarChar(100)
+  age                Int?
+  gender             String?              @db.VarChar(20)
+  phone              String?              @db.VarChar(50)
+  course             String?              @db.VarChar(100)
+  location           String?              @db.VarChar(255)
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?            @db.Timestamp(6)
+  deleted_at         DateTime?            @db.Timestamp(6)
+  tag_id             Int?
+  first_login        Boolean?             @default(true)
+  game_score_history game_score_history[]
+  login_history      login_history[]
+  password_reset     password_reset[]
+  user_badges        user_badges[]
+  user_stats         user_stats?
+  tags               tags?                @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
