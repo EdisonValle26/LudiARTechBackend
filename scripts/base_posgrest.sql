@@ -6,7 +6,7 @@ create table users (
 	email VARCHAR(150) unique not null,
 	password VARCHAR(255) not null,
 	is_active Boolean default true,
-    first_login BOOLEAN DEFAULT true;
+    first_login BOOLEAN DEFAULT true,
 	first_name VARCHAR(100) NULL,
     last_name VARCHAR(100) NULL,
     age INT NULL,

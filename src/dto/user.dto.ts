@@ -1,10 +1,10 @@
 // src/dto/complete-profile.dto.ts
 import {
-    IsInt,
-    IsNotEmpty,
-    IsOptional,
-    IsString,
-    Min,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
 } from 'class-validator';
 
 export class UserDto {
@@ -23,6 +23,10 @@ export class UserDto {
   @IsNotEmpty()
   @IsString()
   gender: string;
+
+  @IsOptional()
+  @IsString()
+  email: string;
 
   @IsNotEmpty()
   @IsString()

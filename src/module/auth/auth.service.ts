@@ -93,6 +93,10 @@ export class AuthService {
             { expiresIn: '1d' },
         );
 
+        const first_name = user.first_name ? user.first_name.split(' ')[0] : "Usuario"
+        const last_name = user.last_name ? user.last_name.split(' ')[0] : "Usuario"
+        const shortname = `${first_name} ${last_name}`;
+
         return {
             token: token,
 
@@ -101,7 +105,8 @@ export class AuthService {
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                fullname: shortname,
             },
         };
     }
