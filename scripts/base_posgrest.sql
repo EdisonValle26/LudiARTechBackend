@@ -129,5 +129,18 @@ INSERT INTO tags (name, description) VALUES
 
 --REGISTRO DE NUEVA COLUMNA
 
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN tag_id INT REFERENCES tags(id);
+
+
+--INSERTAR SECCIONES
+INSERT INTO sections (name, description) VALUES
+('Word', 'Juegos relacionados con Microsoft Word'),
+('Excel', 'Juegos relacionados con Microsoft Excel'),
+('PowerPoint', 'Juegos relacionados con Microsoft PowerPoint');
+
+
+--INSERTAR JUEGOS
+INSERT INTO games (section_id, name, description, max_points) VALUES
+-- WORD
+(1, 'Rompecabezas', 'Completa con el menor número de movimientos y menor tiempo', 500);

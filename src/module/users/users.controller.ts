@@ -5,12 +5,15 @@ import {
     Post,
     Put,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/Guards/jwt-auth.guard';
+import { LifeInterceptor } from 'src/common/interceptors/life.interceptor';
 import { User } from 'src/decorators/user.decorator';
 import { UserDto } from 'src/dto/user.dto';
 import { UsersService } from './users.service';
 
+@UseInterceptors(LifeInterceptor)
 @Controller('users')
 export class UsersController {
     constructor(private usersService: UsersService) { }

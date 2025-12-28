@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './module/auth/auth.module';
+import { GamesModule } from './module/games/games.module';
+import { RankingModule } from './module/ranking/ranking.module';
 import { UsersModule } from './module/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -11,7 +13,9 @@ import { PrismaModule } from './prisma/prisma.module';
     }),
     PrismaModule,
     AuthModule,
-    UsersModule
+    UsersModule,
+    GamesModule,
+    RankingModule
   ],
   controllers: [],
   providers: [],
