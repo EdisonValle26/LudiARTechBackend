@@ -19,7 +19,7 @@ export class UsersController {
     constructor(private usersService: UsersService) { }
 
     @UseGuards(JwtAuthGuard)
-    @Post('complete-profile')
+    @Post('/')
     completeProfile(
         @User('sub') userId: number,
         @Body() dto: UserDto,
