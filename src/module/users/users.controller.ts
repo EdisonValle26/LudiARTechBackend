@@ -36,6 +36,14 @@ export class UsersController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('stats')
+    getUserStast(
+        @User('sub') userId: number,
+    ) {
+        return this.usersService.getUserStats(userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Put('update')
     updateUser(
         @User('sub') userId: number,

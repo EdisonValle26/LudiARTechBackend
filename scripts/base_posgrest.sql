@@ -56,7 +56,7 @@ CREATE TABLE games (
     section_id INT REFERENCES sections(id) ON DELETE CASCADE,
     name VARCHAR(150) NOT NULL,
     description VARCHAR(150),
-    max_points INT DEFAULT 0,  
+    max_points INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -66,13 +66,11 @@ CREATE TABLE games (
 CREATE TABLE user_stats (
     id SERIAL PRIMARY KEY,
     user_id INT UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-
-    lives INT DEFAULT 5,               
-    streak INT DEFAULT 0,               
-    correct_answers INT DEFAULT 0,     
-    total_points INT DEFAULT 0,         
-    games_completed INT DEFAULT 0,      
-
+    lives INT DEFAULT 10,
+    streak INT DEFAULT 0,
+    qualification INT DEFAULT 0,
+    total_points INT DEFAULT 0,
+    games_completed INT DEFAULT 0,
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -85,7 +83,6 @@ CREATE TABLE game_score_history (
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     game_id INT REFERENCES games(id) ON DELETE CASCADE,
     points INT NOT NULL,
-    correct_answers INT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -96,7 +93,6 @@ CREATE TABLE badges (
     id SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     description VARCHAR(150),
-    icon VARCHAR(255),
     points_required INT,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -111,29 +107,39 @@ CREATE TABLE user_badges (
     UNIQUE(user_id, badge_id)
 );
 
---Tags
+--TABLA DE LECCIONES
 
-CREATE TABLE tags (
+CREATE TABLE lessons (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(250),
+    section_id INT REFERENCES sections(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-INSERT INTO tags (name, description) VALUES
-('Explorador Novato', 'Nuevo jugador con habilidades básicas'),
-('Explorador Académico', 'Jugador con habilidades intermedias'),
-('Explorador Experto', 'Jugador avanzado con gran experiencia'),
-('Maestro del Conocimiento', 'Jugador que domina los juegos educativos'),
-('Leyenda Mental', 'El rango más alto del sistema');
 
---REGISTRO DE NUEVA COLUMNA
+--TABLA DE USUARIO LECCION
 
-ALTER TABLE users
-ADD COLUMN tag_id INT REFERENCES tags(id);
+CREATE TABLE user_lessons (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    lesson_id INT REFERENCES lessons(id) ON DELETE CASCADE,
+    score DECIMAL(4,2),
+    completed_at TIMESTAMP,
+    UNIQUE (user_id, lesson_id)
+);
+
+--INSERTAR INSIGNIAS
+
+INSERT INTO badges (name, description, points_required) VALUES
+('Explorador Novato', 'Nuevo jugador con habilidades básicas', 0),
+('Explorador Académico', 'Jugador con habilidades intermedias', 0),
+('Explorador Experto', 'Jugador avanzado con gran experiencia', 0),
+('Maestro del Conocimiento', 'Jugador que domina los juegos educativos', 0),
+('Leyenda Mental', 'El rango más alto del sistema', 50000);
 
 
 --INSERTAR SECCIONES
+
 INSERT INTO sections (name, description) VALUES
 ('Word', 'Juegos relacionados con Microsoft Word'),
 ('Excel', 'Juegos relacionados con Microsoft Excel'),
@@ -141,6 +147,23 @@ INSERT INTO sections (name, description) VALUES
 
 
 --INSERTAR JUEGOS
+
 INSERT INTO games (section_id, name, description, max_points) VALUES
 -- WORD
-(1, 'Rompecabezas', 'Completa con el menor número de movimientos y menor tiempo', 500);
+(1, 'Rompecabezas', 'Completa con el menor número de movimientos y menor tiempo', 500),
+(1, 'Construye el robot', 'Adivina la palabra de Microsoft Word', 500),
+
+-- EXCEL
+(2, 'Empareja las cartas', 'Tablas Dinámicas en Microsoft Excel', 500),
+(2, 'Clasificador de Tipos de Datos', 'Tipo de Datos en Microsoft Excel', 500),
+
+-- POWERPOINT
+(3, 'Experto en PowerPoint', 'Reconoce las partes de PowerPoint y ubicalas correctamente en la interfaz', 500),
+(3, 'Elementos de diapositivas', 'Conecta cada elemento con su función principal', 500);
+
+--INSERTAR Lecciones
+
+INSERT INTO lessons (section_id, name) VALUES
+(1, 'Lección de Word'),
+(2, 'Lección de Excel'),
+(3, 'Lección de PowerPoint');

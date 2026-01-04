@@ -11,6 +11,7 @@ export class GamesService {
         gameId: number,
         dto: GameResultDto,
     ) {
+        const MAX_POINTS = 50000;
         const game = await this.prisma.games.findUnique({
             where: { id: gameId },
         });
@@ -72,6 +73,11 @@ export class GamesService {
         });
 
         const shouldIncreaseGamesCompleted = !alreadyCompleted;
+        const currentPoints = stats.total_points ?? 0;
+        const newTotalPoints = Math.min(currentPoints + score, MAX_POINTS);
+
+        const reachedMaxPoints =
+            currentPoints < MAX_POINTS && newTotalPoints === MAX_POINTS;
 
         await this.prisma.$transaction([
             this.prisma.game_score_history.create({
@@ -79,14 +85,13 @@ export class GamesService {
                     user_id: userId,
                     game_id: gameId,
                     points: score,
-                    correct_answers: dto.correctAnswers ?? 0,
                 },
             }),
 
             this.prisma.user_stats.update({
                 where: { user_id: userId },
                 data: {
-                    total_points: (stats.total_points ?? 0) + score,
+                    total_points: newTotalPoints,
 
                     games_completed: shouldIncreaseGamesCompleted
                         ? (stats.games_completed ?? 0) + 1
@@ -99,6 +104,18 @@ export class GamesService {
                     updated_at: new Date(),
                 },
             }),
+
+            // Insignia final
+            ...(reachedMaxPoints
+                ? [
+                    this.prisma.user_badges.create({
+                        data: {
+                            user_id: userId,
+                            badge_id: 5,
+                        },
+                    }),
+                ]
+                : []),
         ]);
 
 

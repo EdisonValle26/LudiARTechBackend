@@ -18,14 +18,13 @@ model badges {
 }
 
 model game_score_history {
-  id              Int       @id @default(autoincrement())
-  user_id         Int?
-  game_id         Int?
-  points          Int
-  correct_answers Int
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  games           games?    @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  game_id    Int?
+  points     Int
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  games      games?    @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model games {
@@ -62,14 +61,7 @@ model sections {
   description String?   @db.VarChar(150)
   created_at  DateTime? @default(now()) @db.Timestamp(6)
   games       games[]
-}
-
-model tags {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(100)
-  description String?   @db.VarChar(250)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  users       users[]
+  lessons     lessons[]
 }
 
 model user_badges {
@@ -88,7 +80,7 @@ model user_stats {
   user_id         Int?      @unique
   lives           Int?      @default(5)
   streak          Int?      @default(0)
-  correct_answers Int?      @default(0)
+  qualification   Int?      @default(0)
   total_points    Int?      @default(0)
   games_completed Int?      @default(0)
   updated_at      DateTime? @default(now()) @db.Timestamp(6)
@@ -111,12 +103,32 @@ model users {
   created_at         DateTime?            @default(now()) @db.Timestamp(6)
   updated_at         DateTime?            @db.Timestamp(6)
   deleted_at         DateTime?            @db.Timestamp(6)
-  tag_id             Int?
   first_login        Boolean?             @default(true)
   game_score_history game_score_history[]
   login_history      login_history[]
   password_reset     password_reset[]
   user_badges        user_badges[]
+  user_lessons       user_lessons[]
   user_stats         user_stats?
-  tags               tags?                @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model lessons {
+  id           Int            @id @default(autoincrement())
+  section_id   Int?
+  name         String         @db.VarChar(150)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  sections     sections?      @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_lessons user_lessons[]
+}
+
+model user_lessons {
+  id           Int       @id @default(autoincrement())
+  user_id      Int?
+  lesson_id    Int?
+  score        Decimal?  @db.Decimal(4, 2)
+  completed_at DateTime? @db.Timestamp(6)
+  lessons      lessons?  @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, lesson_id])
 }

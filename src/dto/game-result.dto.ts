@@ -1,10 +1,9 @@
 import { Type } from 'class-transformer';
 import {
     IsNotEmpty,
-    IsNumber,
     IsOptional,
     IsString,
-    ValidateNested,
+    ValidateNested
 } from 'class-validator';
 import { RatioDto } from './ratio.dto';
 
@@ -28,8 +27,4 @@ export class GameResultDto {
     @ValidateNested()
     @Type(() => RatioDto)
     errors?: RatioDto;
-
-    @IsOptional()
-    @IsNumber()
-    correctAnswers?: number;
 }
