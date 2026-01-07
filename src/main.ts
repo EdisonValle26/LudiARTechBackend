@@ -11,7 +11,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(configService.get<string>('SERVER_PORT') ?? 3000, configService.get<string>('SERVER_HOST') ?? 'localhost');
+  await app.listen(process.env.PORT ?? 3000, configService.get<string>('SERVER_HOST') ?? 'localhost');
 }
 
 bootstrap()
