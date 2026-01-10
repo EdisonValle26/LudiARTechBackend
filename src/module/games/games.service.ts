@@ -12,6 +12,7 @@ export class GamesService {
         dto: GameResultDto,
     ) {
         const MAX_POINTS = 50000;
+
         const game = await this.prisma.games.findUnique({
             where: { id: gameId },
         });
@@ -50,20 +51,48 @@ export class GamesService {
         }
 
         // CASO GANAR
-        const movementRatio = dto.movements!.used / dto.movements!.total;
-        const timeRatio = dto.time!.used / dto.time!.total;
-
         let score = game.max_points ?? 0;
 
-        // Penalizaciones
-        score -= score * movementRatio * 0.3;
-        score -= score * timeRatio * 0.4;
+        // Pesos
+        const MOVEMENTS_WEIGHT = 0.3;
+        const TIME_WEIGHT = 0.4;
+        const ERRORS_WEIGHT = 0.6;
+
+        let perfect = true;
+
+        //MOVIMIENTOS
+        if (dto.movements) {
+            const movementRatio = dto.movements.used / dto.movements.total;
+            score -= score * movementRatio * MOVEMENTS_WEIGHT;
+
+            if (movementRatio > 0.5) {
+                perfect = false;
+            }
+        }
+
+        // TIEMPO
+        if (dto.time) {
+            const timeRatio = dto.time.used / dto.time.total;
+            score -= score * timeRatio * TIME_WEIGHT;
+
+            if (timeRatio > 0.6) {
+                perfect = false;
+            }
+        }
+
+        // ERRORES
+        if (dto.errors) {
+            const errorRatio = dto.errors.used / dto.errors.total;
+            score -= score * errorRatio * ERRORS_WEIGHT;
+
+            if (errorRatio > 0.2) {
+                perfect = false;
+            }
+        }
 
         score = Math.max(0, Math.round(score));
 
-        // Racha si fue excelente
-        const perfect = movementRatio <= 0.5 && timeRatio <= 0.6;
-
+        // ¿Juego completado antes?
         const alreadyCompleted = await this.prisma.game_score_history.findFirst({
             where: {
                 user_id: userId,
@@ -73,6 +102,7 @@ export class GamesService {
         });
 
         const shouldIncreaseGamesCompleted = !alreadyCompleted;
+
         const currentPoints = stats.total_points ?? 0;
         const newTotalPoints = Math.min(currentPoints + score, MAX_POINTS);
 
@@ -105,7 +135,6 @@ export class GamesService {
                 },
             }),
 
-            // Insignia final
             ...(reachedMaxPoints
                 ? [
                     this.prisma.user_badges.create({
@@ -117,7 +146,6 @@ export class GamesService {
                 ]
                 : []),
         ]);
-
 
         return {
             result: 'WIN',

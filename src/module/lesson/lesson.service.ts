@@ -62,6 +62,102 @@ export class LessonService {
             };
         });
     }
+    //VERSION PARA VERIFICAR SI TIENE RACHAS PARA VOLVER A DAR LAS LECCIONES
+
+//     PRIMERA VEZ:
+//     {
+//   "lesson": "Lección de Word",
+//   "score": 0,
+//   "status": "desbloqueada"
+// }
+
+
+// SIN RACHA:
+// {
+//   "lesson": "Lección de Word",
+//   "score": 10,
+//   "status": "bloqueada"
+// }
+
+
+// CON RACHA: AQUI SALE DESBLOQUEADA, PERO DEBERIA SALIR COMPLETADA
+// {
+//   "lesson": "Lección de Word",
+//   "score": 10,
+//   "status": "desbloqueada"
+// }
+
+
+
+    // async getLessonStatus(userId: number) {
+    //     const sections = await this.prisma.sections.findMany({
+    //         include: {
+    //             games: true,
+    //             lessons: true,
+    //         },
+    //     });
+
+    //     const userGameHistory = await this.prisma.game_score_history.findMany({
+    //         where: { user_id: userId },
+    //     });
+
+    //     const userLessons = await this.prisma.user_lessons.findMany({
+    //         where: { user_id: userId },
+    //     });
+
+    //     const stats = await this.prisma.user_stats.findUnique({
+    //         where: { user_id: userId },
+    //     });
+
+    //     const streak = stats?.streak ?? 0;
+
+    //     return sections.map(section => {
+    //         const gamesInSection = section.games.map(g => g.id);
+
+    //         const completedGamesInSection = new Set(
+    //             userGameHistory
+    //                 .filter(h => gamesInSection.includes(h.game_id!))
+    //                 .map(h => h.game_id)
+    //         );
+
+    //         const allGamesCompleted =
+    //             gamesInSection.length > 0 &&
+    //             completedGamesInSection.size === gamesInSection.length;
+
+    //         const lesson = section.lessons[0];
+
+    //         const userLesson = lesson
+    //             ? userLessons.find(ul => ul.lesson_id === lesson.id)
+    //             : null;
+
+    //         let status: 'bloqueada' | 'desbloqueada' | 'completada' = 'bloqueada';
+
+    //         // 🟢 PRIMERA VEZ: juegos completos → desbloqueada
+    //         if (allGamesCompleted && !userLesson) {
+    //             status = 'desbloqueada';
+    //         }
+
+    //         // 🟡 YA COMPLETÓ LA LECCIÓN
+    //         if (userLesson && userLesson.score !== null) {
+    //             status = 'completada';
+
+    //             // 🔑 Solo puede repetir si tiene racha
+    //             if (streak > 0) {
+    //                 status = 'desbloqueada';
+    //             }
+    //         }
+
+    //         return {
+    //             sectionId: section.id,
+    //             section: section.name,
+    //             lessonId: lesson?.id ?? null,
+    //             lesson: lesson?.name ?? null,
+    //             score: userLesson?.score ? Number(userLesson.score) : 0,
+    //             status,
+    //         };
+    //     });
+    // }
+
 
     async completeLesson(
         userId: number,
