@@ -20,8 +20,13 @@ export class LessonService {
 
         const userLessons = await this.prisma.user_lessons.findMany({
             where: { user_id: userId },
-            include: { lessons: true },
         });
+
+        const stats = await this.prisma.user_stats.findUnique({
+            where: { user_id: userId },
+        });
+
+        const streak = stats?.streak ?? 0;
 
         return sections.map(section => {
             const gamesInSection = section.games.map(g => g.id);
@@ -45,11 +50,18 @@ export class LessonService {
             let status: 'bloqueada' | 'desbloqueada' | 'completada' = 'bloqueada';
 
             if (allGamesCompleted) {
-                status = 'desbloqueada';
-            }
 
-            if (userLesson && userLesson.score !== null) {
-                status = 'completada';
+                if (!userLesson) {
+                    status = 'desbloqueada';
+                }
+
+                else {
+                    if (streak > 0) {
+                        status = 'completada';
+                    } else {
+                        status = 'bloqueada';
+                    }
+                }
             }
 
             return {
@@ -57,106 +69,72 @@ export class LessonService {
                 section: section.name,
                 lessonId: lesson?.id ?? null,
                 lesson: lesson?.name ?? null,
-                score: userLesson?.score ? Number(userLesson?.score) : 0,
+                score: userLesson?.score ? Number(userLesson.score) : 0,
                 status,
             };
         });
     }
-    //VERSION PARA VERIFICAR SI TIENE RACHAS PARA VOLVER A DAR LAS LECCIONES
 
-//     PRIMERA VEZ:
-//     {
-//   "lesson": "Lección de Word",
-//   "score": 0,
-//   "status": "desbloqueada"
-// }
+    async getCertificateStatus(userId: number) {
+        const REQUIRED_LESSONS = 3;
+        const MIN_SCORE = 7;
 
+        const user = await this.prisma.users.findUnique({
+            where: { id: userId },
+            select: {
+                first_name: true,
+                last_name: true,
+            },
+        });
 
-// SIN RACHA:
-// {
-//   "lesson": "Lección de Word",
-//   "score": 10,
-//   "status": "bloqueada"
-// }
+        const fullName = `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim();
 
+        const stats = await this.prisma.user_stats.findUnique({
+            where: { user_id: userId },
+            select: { qualification: true },
+        });
 
-// CON RACHA: AQUI SALE DESBLOQUEADA, PERO DEBERIA SALIR COMPLETADA
-// {
-//   "lesson": "Lección de Word",
-//   "score": 10,
-//   "status": "desbloqueada"
-// }
+        if (stats?.qualification === 1) {
+            return {
+                canGetCertificate: false,
+                fullName,
+            };
+        }
 
+        const lessons = await this.prisma.user_lessons.findMany({
+            where: {
+                user_id: userId,
+                score: { not: null },
+            },
+            select: { score: true },
+        });
 
+        if (lessons.length !== REQUIRED_LESSONS) {
+            return {
+                canGetCertificate: false,
+                fullName,
+            };
+        }
 
-    // async getLessonStatus(userId: number) {
-    //     const sections = await this.prisma.sections.findMany({
-    //         include: {
-    //             games: true,
-    //             lessons: true,
-    //         },
-    //     });
+        const allPassed = lessons.every(l => Number(l.score) >= MIN_SCORE);
 
-    //     const userGameHistory = await this.prisma.game_score_history.findMany({
-    //         where: { user_id: userId },
-    //     });
+        if (!allPassed) {
+            return {
+                canGetCertificate: false,
+                fullName,
+            };
+        }
 
-    //     const userLessons = await this.prisma.user_lessons.findMany({
-    //         where: { user_id: userId },
-    //     });
+        await this.prisma.user_stats.update({
+            where: { user_id: userId },
+            data: { qualification: 1 },
+        });
 
-    //     const stats = await this.prisma.user_stats.findUnique({
-    //         where: { user_id: userId },
-    //     });
-
-    //     const streak = stats?.streak ?? 0;
-
-    //     return sections.map(section => {
-    //         const gamesInSection = section.games.map(g => g.id);
-
-    //         const completedGamesInSection = new Set(
-    //             userGameHistory
-    //                 .filter(h => gamesInSection.includes(h.game_id!))
-    //                 .map(h => h.game_id)
-    //         );
-
-    //         const allGamesCompleted =
-    //             gamesInSection.length > 0 &&
-    //             completedGamesInSection.size === gamesInSection.length;
-
-    //         const lesson = section.lessons[0];
-
-    //         const userLesson = lesson
-    //             ? userLessons.find(ul => ul.lesson_id === lesson.id)
-    //             : null;
-
-    //         let status: 'bloqueada' | 'desbloqueada' | 'completada' = 'bloqueada';
-
-    //         // 🟢 PRIMERA VEZ: juegos completos → desbloqueada
-    //         if (allGamesCompleted && !userLesson) {
-    //             status = 'desbloqueada';
-    //         }
-
-    //         // 🟡 YA COMPLETÓ LA LECCIÓN
-    //         if (userLesson && userLesson.score !== null) {
-    //             status = 'completada';
-
-    //             // 🔑 Solo puede repetir si tiene racha
-    //             if (streak > 0) {
-    //                 status = 'desbloqueada';
-    //             }
-    //         }
-
-    //         return {
-    //             sectionId: section.id,
-    //             section: section.name,
-    //             lessonId: lesson?.id ?? null,
-    //             lesson: lesson?.name ?? null,
-    //             score: userLesson?.score ? Number(userLesson.score) : 0,
-    //             status,
-    //         };
-    //     });
-    // }
+        return {
+            canGetCertificate: true,
+            fullName,
+        };
+    }
 
 
     async completeLesson(

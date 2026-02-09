@@ -19,6 +19,14 @@ export class LessonController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('certificate-status')
+    getCertificateStatus(
+        @User('sub') userId: number,
+    ) {
+        return this.lessonService.getCertificateStatus(userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Post('complete')
     completeLesson(
         @User('sub') userId: number,
